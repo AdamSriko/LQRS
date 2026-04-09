@@ -1,12 +1,17 @@
 import { Sidebar } from "./Sidebar";
+import { GeneratingBadge } from "./GeneratingBadge";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="min-h-screen bg-cream-muted/30">
       <Sidebar />
-      <main className="flex-1 lg:pl-72">
-        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">{children}</div>
+      {/* Desktop: offset by sidebar width. Mobile: no left offset, sidebar is a drawer. */}
+      <main className="lg:pl-72">
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
+          {children}
+        </div>
       </main>
+      <GeneratingBadge />
     </div>
   );
 }

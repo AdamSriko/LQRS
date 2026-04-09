@@ -1,0 +1,16 @@
+{
+  "name": "LQRS Drama Engine",
+  "short_name": "LQRS",
+  "description": "Turn Qahwtea café moments into reality-TV scripts.",
+  "background_color": "#fdf8f6",
+  "theme_color": "#b76e79",
+  "display": "standalone",
+  "start_url": "/input",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

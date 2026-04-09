@@ -1,98 +1,235 @@
-import { FileJson, FileText, FolderOpen, Sparkles } from "lucide-react";
+"use client";
 
-const vaultFiles = [
-  {
-    name: "drama_rules.md",
-    kind: "Markdown",
-    blurb: "Escalation beats, confessionals, and when to cue the slow-motion steam wand.",
-  },
-  {
-    name: "lavanya_lore.md",
-    kind: "Markdown",
-    blurb: "Backstory, apron superstitions, and why she never serves Adam first when the line is long.",
-  },
-  {
-    name: "qahwtea_floorplan.md",
-    kind: "Markdown",
-    blurb: "Where the drama happens: pastry case choke point, whisper corner by the plant wall.",
-  },
-  {
-    name: "relationship_memory.json",
-    kind: "JSON",
-    blurb: "Structured edges between Lavanya, Adam, and the rotating cast — tension scores & payoffs.",
-  },
-  {
-    name: "episode_arcs.yaml",
-    kind: "YAML",
-    blurb: "Season spine: loyalty app betrayal arc, oat milk shortage week, the mystery influencer.",
-  },
-  {
-    name: "confessional_prompts.md",
-    kind: "Markdown",
-    blurb: "To-camera templates — 'I didn't want to say this, but the croissant basket saw everything.'",
-  },
-] as const;
+import { useEffect, useState } from "react";
+import {
+  Brain,
+  Clapperboard,
+  FileJson,
+  FileText,
+  FolderOpen,
+  RefreshCw,
+  ScrollText,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
+import type { VaultSection } from "@/lib/vault-reader";
 
-function FileIcon({ kind }: { kind: string }) {
-  if (kind === "JSON") return <FileJson className="h-5 w-5 text-mint-deep" aria-hidden />;
-  return <FileText className="h-5 w-5 text-lilac-deep" aria-hidden />;
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function VaultView() {
-  return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-mauve-deep sm:text-4xl">
-          Obsidian Vault
-        </h1>
-        <p className="mt-2 max-w-2xl text-mauve/80">
-          The AI&apos;s instruction library — markdown lore, JSON memory, and house rules pulled into
-          every generation pass. Think of it as the mood board behind the mood.
-        </p>
-      </header>
+function formatRelative(iso: string): string {
+  if (!iso) return "";
+  try {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  } catch {
+    return "";
+  }
+}
 
-      <div className="rounded-3xl border border-lilac-soft/70 bg-gradient-to-br from-white/90 via-cream-muted/80 to-blush-soft/30 p-6 shadow-soft sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mauve-deep text-blush-soft shadow-soft">
-              <FolderOpen className="h-6 w-6" aria-hidden />
-            </span>
-            <div>
-              <p className="font-display text-lg font-semibold text-mauve-deep">Context sync</p>
-              <p className="mt-1 max-w-xl text-sm leading-relaxed text-mauve/75">
-                Before the model drafts a scene, it retrieves from these files — like a stylist pulling
-                swatches before a shoot. Your vault is the canon for Qahwtea.
-              </p>
+function FileIcon({ filename }: { filename: string }) {
+  if (filename.endsWith(".json"))
+    return <FileJson className="h-4 w-4 shrink-0 text-mint-deep" aria-hidden />;
+  return <FileText className="h-4 w-4 shrink-0 text-lilac-deep" aria-hidden />;
+}
+
+const SECTION_ICONS: Record<string, React.ReactNode> = {
+  lore: <Brain className="h-5 w-5" aria-hidden />,
+  skills: <Wand2 className="h-5 w-5" aria-hidden />,
+  episodes: <Clapperboard className="h-5 w-5" aria-hidden />,
+  raw_scenarios: <ScrollText className="h-5 w-5" aria-hidden />,
+  memory: <FileJson className="h-5 w-5" aria-hidden />,
+};
+
+const SECTION_COLORS: Record<string, string> = {
+  lore: "from-blush-soft to-lilac-soft/60",
+  skills: "from-lilac-soft to-mint-soft/60",
+  episodes: "from-rosegold/20 to-blush-soft/60",
+  raw_scenarios: "from-cream-deep to-blush-soft/40",
+  memory: "from-mint-soft to-cream-deep/60",
+};
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function VaultSkeleton() {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-3xl border border-blush-soft/40 bg-white/60 p-5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="lqrs-shimmer h-10 w-10 rounded-2xl" />
+            <div className="flex-1 space-y-2">
+              <div className="lqrs-shimmer h-3.5 w-24 rounded-full" />
+              <div className="lqrs-shimmer h-2.5 w-16 rounded-full" />
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-2xl border border-mint/50 bg-mint-soft/60 px-4 py-2 text-xs font-medium text-mauve-deep shadow-soft-inner">
-            <Sparkles className="h-4 w-4 text-rosegold-accent" aria-hidden />
-            Mock files — wire to disk or CMS later
+          <div className="mt-4 space-y-2">
+            <div className="lqrs-shimmer h-2.5 w-full rounded-full" />
+            <div className="lqrs-shimmer h-2.5 w-3/4 rounded-full" />
           </div>
+          <div className="mt-4 space-y-1.5">
+            {Array.from({ length: 2 }).map((_, j) => (
+              <div key={j} className="lqrs-shimmer h-8 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Section card ──────────────────────────────────────────────────────────────
+
+function SectionCard({ section }: { section: VaultSection }) {
+  const gradient = SECTION_COLORS[section.key] ?? "from-cream-deep to-blush-soft/40";
+  const icon = SECTION_ICONS[section.key] ?? <FolderOpen className="h-5 w-5" aria-hidden />;
+
+  return (
+    <article className="flex flex-col rounded-3xl border border-blush-soft/50 bg-white/80 shadow-soft transition hover:shadow-glow">
+      {/* Card header */}
+      <div className={`flex items-center gap-3 rounded-t-3xl bg-gradient-to-r p-5 ${gradient}`}>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/70 text-mauve-deep shadow-soft-inner">
+          {icon}
+        </span>
+        <div>
+          <p className="font-display text-sm font-semibold text-mauve-deep">{section.label}</p>
+          <p className="text-xs text-mauve/60">
+            {section.files.length === 0
+              ? "empty"
+              : `${section.files.length} file${section.files.length !== 1 ? "s" : ""}`}
+          </p>
         </div>
       </div>
 
-      <ul className="grid gap-4 sm:grid-cols-2">
-        {vaultFiles.map((file) => (
-          <li key={file.name}>
-            <article className="group flex h-full flex-col rounded-3xl border border-blush-soft/50 bg-white/75 p-5 shadow-soft transition hover:border-lilac/60 hover:shadow-glow">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="rounded-xl bg-cream-deep/80 p-2 shadow-soft-inner">
-                    <FileIcon kind={file.kind} />
-                  </span>
-                  <div>
-                    <p className="font-mono text-sm font-medium text-mauve-deep">{file.name}</p>
-                    <p className="text-xs uppercase tracking-wider text-mauve/50">{file.kind}</p>
+      {/* Description */}
+      <p className="px-5 pt-4 text-xs leading-relaxed text-mauve/65">{section.description}</p>
+
+      {/* File list */}
+      <div className="mt-3 flex-1 px-5 pb-5">
+        {section.files.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-lilac-soft/70 bg-cream/40 px-3 py-4 text-center text-xs text-mauve/45">
+            No files yet
+          </p>
+        ) : (
+          <ul className="space-y-1.5">
+            {section.files.map((file) => (
+              <li key={file.filename}>
+                <div className="flex items-center justify-between gap-2 rounded-xl border border-blush-soft/40 bg-cream/50 px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FileIcon filename={file.filename} />
+                    <span className="truncate font-mono text-xs text-mauve-deep">
+                      {file.filename}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2 text-xs text-mauve/45">
+                    <span>{formatBytes(file.sizeBytes)}</span>
+                    <span className="hidden sm:inline">{formatRelative(file.modifiedAt)}</span>
                   </div>
                 </div>
-              </div>
-              <p className="mt-4 flex-1 text-sm leading-relaxed text-mauve/75">{file.blurb}</p>
-              <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-gradient-to-r from-blush-soft via-lilac-soft to-mint-soft opacity-70" aria-hidden />
-            </article>
-          </li>
-        ))}
-      </ul>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </article>
+  );
+}
+
+// ── VaultView ─────────────────────────────────────────────────────────────────
+
+export function VaultView() {
+  const [sections, setSections] = useState<VaultSection[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchVault = async (silent = false) => {
+    if (!silent) setSections(null);
+    setError(null);
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/vault");
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = (await res.json()) as { sections: VaultSection[]; error?: string };
+      if (data.error) throw new Error(data.error);
+      setSections(data.sections);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load vault.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => { void fetchVault(); }, []);
+
+  const totalFiles = sections?.reduce((n, s) => n + s.files.length, 0) ?? 0;
+
+  return (
+    <div className="space-y-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-mauve-deep sm:text-4xl">
+            Obsidian Vault
+          </h1>
+          <p className="mt-2 max-w-2xl text-mauve/80">
+            The AI&apos;s instruction library — every file here shapes what gets written. Live view of
+            your local vault.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void fetchVault(true)}
+          disabled={refreshing}
+          className="inline-flex shrink-0 items-center gap-2 self-start rounded-2xl border border-lilac-soft/80 bg-white/80 px-4 py-2.5 text-sm font-medium text-mauve-deep shadow-soft transition hover:bg-cream disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden />
+          Refresh
+        </button>
+      </header>
+
+      {/* Status bar */}
+      {sections && (
+        <div className="flex items-center gap-2 rounded-2xl border border-mint/40 bg-mint-soft/40 px-4 py-3 text-sm shadow-soft-inner">
+          <Sparkles className="h-4 w-4 shrink-0 text-rosegold-accent" aria-hidden />
+          <span className="text-mauve/80">
+            <span className="font-medium text-mauve-deep">{totalFiles} file{totalFiles !== 1 ? "s" : ""}</span>
+            {" "}across {sections.filter((s) => s.files.length > 0).length} active section{sections.filter((s) => s.files.length > 0).length !== 1 ? "s" : ""}
+            {" "}— vault is live
+          </span>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="lqrs-fade-up rounded-2xl border border-blush/50 bg-blush-soft/30 px-4 py-4 text-sm text-rosegold-accent" role="alert">
+          {error}
+        </div>
+      )}
+
+      {/* Loading */}
+      {!sections && !error && <VaultSkeleton />}
+
+      {/* Grid */}
+      {sections && (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {sections.map((section) => (
+            <SectionCard key={section.key} section={section} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

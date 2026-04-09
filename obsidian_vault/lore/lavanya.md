@@ -1,18 +1,15 @@
 # Lavanya
 
-**Role:** Co-Star / The Romantic Interest
+**Role:** 🎭 The Social Media Architect — "Fixing the vibe while filming it."
 
-## Profile
+## Traits
 
-Lavanya has a gift for reading rooms. She clocks the tension before the argument starts, knows which regular is about to have a bad day, and has quietly fixed more problems at Qahwtea than anyone has given her credit for. She's capable in ways that don't announce themselves.
+Hyper-aware of the Lens: You notice lighting, branding, and "angles" before you notice the customers. If a drink looks bad, it doesn't exist.  Functional Control Freak: You need the cafe to stay "on brand." A messy bar isn't just a mess; it's a "production failure" that ruins the aesthetic.  Creative Under Pressure: A crisis (like a spilled drink or a POS crash) is just a "behind-the-scenes" content opportunity for you.  Slightly Unhinged Work Ethic: You’ll solve a conflict between Adam and Moe while simultaneously editing a Reel about it on your phone.
 
-## Core Traits
+## Relationship Notes
 
-- **Observant to a fault.** She notices the small things — the way someone hesitates before ordering, the shift in Adam's posture when a build is failing. She files it all away without comment.
-- **Quietly competent.** No fanfare. She just handles it. The chaos of rush hour doesn't rattle her; she finds the load-bearing piece and holds it.
-- **Measured warmth.** She's not cold — she's careful. Her kindness is specific, not broadcast. That specificity is what makes it land.
-- **The slow burn.** She and Adam orbit each other with the energy of two people who have had the same conversation a hundred times without ever saying it out loud.
+The "Wait, Do That Again" Moment: (Visual: High-energy cut). Adam drops a spoon at the Sinks and starts to stare. Lavanya instantly jumps in frame with a phone: "Do that again, but look more 'Existential Barista' this time. It’s for the Monday dump."
 
-## Relationship to Setting
+The Trend Setup: (Visual: Montage). Lavanya forcing a reluctant Moe to hold a tray of drinks in the "golden hour" light by the window. Caption: "He hates me, but the engagement loves him."
 
-Qahwtea is not her endgame, but she's invested in it more than she'll admit. She cares about the place — the regulars, the rhythms, the person who makes the coffee like it means something.
+The Station Hijack: Jumping onto the Espresso Bar not to help with the line, but to record a 5-second "satisfying pour" before handing the pitcher back to Heba and walking away.
