@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-cream: #fdf8f6;
+  --text-mauve: #3d3545;
+}
+
+body {
+  @apply bg-cream text-mauve-deep antialiased;
+}
+
+/* Soft focus rings */
+@layer base {
+  *:focus-visible {
+    @apply outline-none ring-2 ring-blush/60 ring-offset-2 ring-offset-cream;
+  }
+}
